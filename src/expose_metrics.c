@@ -1,4 +1,5 @@
-#include "expose_metrics.h"
+#include "../include/expose_metrics.h"
+#include "metrics.c"
 
 /** Mutex para sincronización de hilos */
 pthread_mutex_t lock;
@@ -71,14 +72,14 @@ void init_metrics()
     if (pthread_mutex_init(&lock, NULL) != 0)
     {
         fprintf(stderr, "Error al inicializar el mutex\n");
-        return EXIT_FAILURE;
+        
     }
 
     // Inicializamos el registro de coleccionistas de Prometheus
     if (prom_collector_registry_default_init() != 0)
     {
         fprintf(stderr, "Error al inicializar el registro de Prometheus\n");
-        return EXIT_FAILURE;
+    
     }
 
     // Creamos la métrica para el uso de CPU
@@ -86,7 +87,7 @@ void init_metrics()
     if (cpu_usage_metric == NULL)
     {
         fprintf(stderr, "Error al crear la métrica de uso de CPU\n");
-        return EXIT_FAILURE;
+        
     }
 
     // Creamos la métrica para el uso de memoria
@@ -94,15 +95,17 @@ void init_metrics()
     if (memory_usage_metric == NULL)
     {
         fprintf(stderr, "Error al crear la métrica de uso de memoria\n");
-        return EXIT_FAILURE;
+        
     }
 
     // Registramos las métricas en el registro por defecto
-    if (prom_collector_registry_must_register_metric(cpu_usage_metric) != 0 ||
-        prom_collector_registry_must_register_metric(memory_usage_metric) != 0)
+   if (prom_collector_registry_must_register_metric(memory_usage_metric) == NULL)
     {
-        fprintf(stderr, "Error al registrar las métricas\n");
-        return EXIT_FAILURE;
+        fprintf(stderr, "Error al registrar las métricas - memoria\n");
+    }
+    if (prom_collector_registry_must_register_metric(cpu_usage_metric) == NULL)
+    {
+        fprintf(stderr, "Error al registrar las métricas - cpu\n");
     }
 }
 
